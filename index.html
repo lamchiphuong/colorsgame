@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Color Listening Game</title>
+
+<style>
+  body {
+    text-align: center;
+    font-family: Arial;
+  }
+
+  #gameArea {
+    margin-top: 20px;
+    width: 100%;
+    height: 400px;
+    position: relative;
+    border: 2px solid #333;
+    overflow: hidden;
+  }
+
+  .circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    position: absolute;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  #info {
+    margin-top: 10px;
+    font-size: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>🎧 Listen and Choose the Color</h1>
+<button onclick="startGame()">Play</button>
+
+<div id="info"></div>
+<div id="gameArea"></div>
+
+<script>
+const colors = ["red", "yellow", "green", "blue"];
+let targetColor = "";
+let round = 0;
+let maxRounds = 10;
+let roundsList = [];
+
+// START GAME
+function startGame() {
+  round = 0;
+
+  roundsList = [];
+  while (roundsList.length < maxRounds) {
+    roundsList.push(...colors);
+  }
+
+  roundsList = roundsList.slice(0, maxRounds);
+  roundsList.sort(() => Math.random() - 0.5);
+
+  nextRound();
+}
+
+// NEXT ROUND
+function nextRound() {
+  if (round >= maxRounds) {
+    document.getElementById("info").innerText = "🎉 Finished!";
+    document.getElementById("gameArea").innerHTML = "";
+    return;
+  }
+
+  const gameArea = document.getElementById("gameArea");
+  gameArea.innerHTML = "";
+
+  targetColor = roundsList[round];
+  round++;
+
+  document.getElementById("info").innerText =
+    "Round " + round + " - Find: " + targetColor.toUpperCase();
+
+  playSound(targetColor);
+  createCircles();
+}
+
+// CREATE CIRCLES
+function createCircles() {
+  const gameArea = document.getElementById("gameArea");
+
+  for (let i = 0; i < 12; i++) {
+    const circle = document.createElement("div");
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    circle.classList.add("circle");
+    circle.style.backgroundColor = color;
+
+    circle.style.top = Math.random() * 330 + "px";
+    circle.style.left = Math.random() * (window.innerWidth - 100) + "px";
+
+    circle.dataset.color = color;
+    circle.onclick = () => handleClick(circle);
+
+    gameArea.appendChild(circle);
+  }
+}
+
+// HANDLE CLICK
+function handleClick(circle) {
+  if (circle.dataset.color === targetColor) {
+    playCorrectSound();
+    circle.remove();
+    checkRoundComplete();
+  } else {
+    playWrongSound();
+
+    // sai → nhảy
+    circle.style.top = Math.random() * 330 + "px";
+    circle.style.left = Math.random() * (window.innerWidth - 100) + "px";
+  }
+}
+
+// CHECK ROUND
+function checkRoundComplete() {
+  const circles = document.querySelectorAll(".circle");
+
+  for (let c of circles) {
+    if (c.dataset.color === targetColor) return;
+  }
+
+  setTimeout(nextRound, 500);
+}
+
+// AUDIO
+function playSound(color) {
+  const audio = new Audio("sounds/" + color + ".mp3");
+  audio.play();
+}
+
+function playCorrectSound() {
+  const audio = new Audio("sounds/correct.mp3");
+  audio.play();
+}
+
+function playWrongSound() {
+  const audio = new Audio("sounds/wrong.mp3");
+  audio.play();
+}
+</script>
+
+</body>
+</html>
